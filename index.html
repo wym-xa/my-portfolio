@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>第十四天 - 真实API调用（fetch）</title>
+    <style>
+        body {
+            background: #f0f0f0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 15px;
+            border: 3px solid #007bff;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        button:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+        }
+        .info {
+            text-align: left;
+            margin-top: 15px;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .info p {
+            margin: 8px 0;
+        }
+        .error {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>👤 随机用户名片</h1>
+        <div id="avatarContainer">
+            < img id="avatar" class="avatar" src="https://randomuser.me/api/portraits/women/1.jpg" alt="随机头像">
+        </div>
+        <button id="fetchBtn">获取随机用户</button>
+        <div id="userInfo" class="info">
+            <p>点击按钮获取随机用户信息</p >
+        </div>
+    </div>
+
+    <script>
+        const fetchBtn = document.getElementById('fetchBtn');
+        const avatarImg = document.getElementById('avatar');
+        const userInfoDiv = document.getElementById('userInfo');
+
+        // 异步函数：从API获取随机用户
+        async function fetchRandomUser() {
+            try {
+                // 显示加载状态
+                fetchBtn.disabled = true;
+                fetchBtn.textContent = '加载中...';
+                userInfoDiv.innerHTML = '<p>⏳ 获取用户信息中...</p >';
+                
+                // 调用API（返回Promise）
+                const response = await fetch('https://randomuser.me/api/');
+                
+                // 检查响应是否成功
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                // 解析JSON数据
+                const data = await response.json();
+                const user = data.results[0];
+                
+                // 提取需要的信息
+                const name = `${user.name.first} ${user.name.last}`;
+                const gender = user.gender === 'male' ? '男' : '女';
+                const country = user.location.country;
+                const email = user.email;
+                const phone = user.phone;
+                const avatar = user.picture.large;
+                
+                // 更新页面
+                avatarImg.src = avatar;
+                userInfoDiv.innerHTML = `
+                    <p><strong>姓名：</strong> ${name}</p >
+                    <p><strong>性别：</strong> ${gender}</p >
+                    <p><strong>国家：</strong> ${country}</p >
+                    <p><strong>邮箱：</strong> ${email}</p >
+                    <p><strong>电话：</strong> ${phone}</p >
+                `;
+            } catch (error) {
+                console.error('获取用户失败:', error);
+                userInfoDiv.innerHTML = `<p class="error">❌ 获取失败：${error.message}<br>请检查网络后重试。</p >`;
+            } finally {
+                fetchBtn.disabled = false;
+                fetchBtn.textContent = '获取随机用户';
+            }
+        }
+
+        // 绑定点击事件
+        fetchBtn.addEventListener('click', fetchRandomUser);
+    </script>
+</body>
+</html>

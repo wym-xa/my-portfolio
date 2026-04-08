@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>第十一天 - 待办清单（含小练习）</title>
+    <style>
+        body {
+            background: #f0f0f0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 550px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 { text-align: center; margin-bottom: 10px; }
+        .stats {
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 15px;
+            padding: 5px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        #taskInput {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+        .filter-buttons button {
+            background: #6c757d;
+        }
+        .filter-buttons button.active {
+            background: #007bff;
+        }
+        .search-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        #searchInput {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .clear-search {
+            background: #6c757d;
+            white-space: nowrap;
+        }
+        .clear-completed {
+            background: #dc3545;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        ul { list-style: none; padding: 0; }
+        li {
+            background: #f9f9f9;
+            margin: 8px 0;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .task-text {
+            cursor: pointer;
+            flex: 1;
+            text-align: left;
+        }
+        .completed {
+            text-decoration: line-through;
+            color: #888;
+        }
+        .highlight {
+            background-color: yellow;
+            color: black;
+            font-weight: bold;
+        }
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .edit-note {
+            font-size: 12px;
+            color: #888;
+            margin-top: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 待办清单</h1>
+        <div class="stats" id="stats"></div>
+
+        <div class="input-area">
+            <input type="text" id="taskInput" placeholder="输入新任务...">
+            <button id="addBtn">添加</button>
+        </div>
+
+        <div class="filter-buttons">
+            <button id="filterAll" class="active">全部</button>
+            <button id="filterActive">未完成</button>
+            <button id="filterCompleted">已完成</button>
+        </div>
+
+        <!-- 搜索框 + 清空搜索按钮（小练习2） -->
+        <div class="search-area">
+            <input type="text" id="searchInput" placeholder="🔍 搜索任务...">
+           <button id="clearSearchBtn" class="clear-search">清空搜索</button>
+        </div>
+
+        <button id="clearCompletedBtn" class="clear-completed">清除所有已完成任务</button>
+
+        <ul id="todoList"></ul>
+        <div class="edit-note">💡 提示：单击切换完成状态，双击编辑任务；搜索词会高亮显示</div>
+    </div>
+
+    <script>
+        // 任务数组
+        let todos = [
+            { text: '学习HTML', completed: true },
+            { text: '学习CSS', completed: false },
+            { text: '学习JavaScript', completed: false },
+            { text: '学习React', completed: false },
+            { text: '学习Vue', completed: false }
+        ];
+
+        let filterStatus = 'all';      // 'all', 'active', 'completed'
+        let searchKeyword = '';         // 搜索关键词
+
+        // DOM 元素
+        const input = document.getElementById('taskInput');
+        const addBtn = document.getElementById('addBtn');
+        const list = document.getElementById('todoList');
+        const filterAllBtn = document.getElementById('filterAll');
+        const filterActiveBtn = document.getElementById('filterActive');
+        const filterCompletedBtn = document.getElementById('filterCompleted');
+        const clearCompletedBtn = document.getElementById('clearCompletedBtn');
+        const statsDiv = document.getElementById('stats');
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+        // 更新统计
+        function updateStats() {
+            const total = todos.length;
+            const activeCount = todos.filter(task => !task.completed).length;
+            statsDiv.textContent = `📊 总共 ${total} 项，未完成 ${activeCount} 项`;
+        }
+
+        // 高亮文本（小练习1）
+        function highlightText(text, keyword) {
+            if (!keyword) return text;
+            // 转义正则特殊字符
+            const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${escapedKeyword})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        // 获取最终需要显示的任务列表（同时根据筛选状态和搜索关键词）
+        function getFilteredTodos() {
+            // 1. 先根据完成状态筛选
+            let filtered = todos;
+            if (filterStatus === 'active') {
+                filtered = todos.filter(task => !task.completed);
+            } else if (filterStatus === 'completed') {
+                filtered = todos.filter(task => task.completed);
+            }
+
+            // 2. 再根据搜索关键词筛选（不区分大小写）
+            if (searchKeyword.trim() !== '') {
+                const keyword = searchKeyword.trim().toLowerCase();
+                filtered = filtered.filter(task => task.text.toLowerCase().includes(keyword));
+            }
+            return filtered;
+        }
+
+        // 渲染列表
+        function renderTodoList() {
+            const filteredTodos = getFilteredTodos();
+            list.innerHTML = '';
+
+            filteredTodos.forEach((task) => {
+                const originalIndex = todos.findIndex(t => t === task);
+                
+                const li = document.createElement('li');
+                const taskSpan = document.createElement('span');
+                // 高亮处理
+                const highlighted = highlightText(task.text, searchKeyword.trim());
+                taskSpan.innerHTML = highlighted;  // 注意：使用了 innerHTML，但文本来源可靠（用户输入已转义）
+                taskSpan.className = 'task-text';
+                if (task.completed) {
+                    taskSpan.classList.add('completed');
+                }
+                taskSpan.onclick = () => toggleComplete(originalIndex);
+                taskSpan.ondblclick = (e) => {
+                    e.stopPropagation();
+                    editTask(originalIndex);
+                };
+                
+                const delBtn = document.createElement('button');
+                delBtn.textContent = '删除';
+                delBtn.className = 'delete-btn';
+                delBtn.onclick = () => deleteTodo(originalIndex);
+                
+                li.appendChild(taskSpan);
+                li.appendChild(delBtn);
+                list.appendChild(li);
+            });
+            updateStats();
+        }
+
+        // 切换完成状态
+        function toggleComplete(index) {
+            todos[index].completed = !todos[index].completed;
+            renderTodoList();
+        }
+
+        // 编辑任务
+        function editTask(index) {
+            const oldText = todos[index].text;
+            const newText = prompt('编辑任务', oldText);
+            if (newText === null) return;
+            const trimmed = newText.trim();
+            if (trimmed === '') {
+                alert('任务内容不能为空');
+                return;
+            }
+            if (todos.some((task, i) => i !== index && task.text === trimmed)) {
+                alert('任务已存在，不能重复');
+                return;
+            }
+            todos[index].text = trimmed;
+            renderTodoList();
+        }
+
+        // 删除任务
+        function deleteTodo(index) {
+            todos.splice(index, 1);
+            renderTodoList();
+        }
+
+        // 添加任务
+        function addTodo() {
+            const text = input.value.trim();
+            if (text === '') {
+                alert('请输入任务内容');
+                return;
+            }
+            if (todos.some(task => task.text === text)) {
+                alert('任务已存在');
+                return;
+            }
+            todos.push({ text: text, completed: false });
+            input.value = '';
+            renderTodoList();
+        }
+
+        // 清除已完成任务
+        function clearCompleted() {
+            const hasCompleted = todos.some(task => task.completed);
+            if (!hasCompleted) {
+                alert('没有已完成的任务');
+                return;
+            }
+            if (confirm('确定要删除所有已完成的任务吗？')) {
+                todos = todos.filter(task => !task.completed);
+                renderTodoList();
+            }
+        }
+
+        // 设置筛选状态
+        function setFilter(status) {
+            filterStatus = status;
+            filterAllBtn.classList.remove('active');
+            filterActiveBtn.classList.remove('active');
+            filterCompletedBtn.classList.remove('active');
+            if (status === 'all') filterAllBtn.classList.add('active');
+            if (status === 'active') filterActiveBtn.classList.add('active');
+            if (status === 'completed') filterCompletedBtn.classList.add('active');
+            renderTodoList();
+        }
+
+        // 搜索框事件
+        function handleSearch(e) {
+            searchKeyword = e.target.value;
+            renderTodoList();
+        }
+
+        // 清空搜索（小练习2）
+        function clearSearch() {
+            searchInput.value = '';
+            searchKeyword = '';
+            renderTodoList();
+        }
+
+        // 绑定事件
+        addBtn.onclick = addTodo;
+        filterAllBtn.onclick = () => setFilter('all');
+        filterActiveBtn.onclick = () => setFilter('active');
+        filterCompletedBtn.onclick = () => setFilter('completed');
+        clearCompletedBtn.onclick = clearCompleted;
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addTodo();
+        });
+        searchInput.addEventListener('input', handleSearch);
+        clearSearchBtn.addEventListener('click', clearSearch);
+
+        // 初始化
+        renderTodoList();
+    </script>
+</body>
+</html>

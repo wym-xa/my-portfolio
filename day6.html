@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>第六天小练习 - 变量与交互</title>
+    <style>
+        body {
+            background: #f0f0f0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 20px 0;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .message {
+            color: #333;
+            margin-top: 20px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>✨ 第六天练习 ✨</h1>
+        <p>点击按钮，输入你的名字</p >
+        <button id="greetBtn">点我打招呼</button>
+        <div class="message" id="displayMessage"></div>
+    </div>
+
+    <script>
+        const btn = document.getElementById('greetBtn');
+        const messageDiv = document.getElementById('displayMessage');
+
+        btn.addEventListener('click', function() {
+            let userName = prompt('请输入你的名字：');
+            
+            if (userName) {
+                let welcomeText;
+                // 小练习2：如果名字是“老师”，特殊处理
+                if (userName === '老师') {
+                    welcomeText = '老师好！欢迎指导 🎓';
+                    alert(welcomeText);
+                } else {
+                    // 小练习1：显示“你好，[名字]！今天是第六天学习”
+                    welcomeText = '你好，' + userName + '！今天是第六天学习 🚀';
+                    alert(welcomeText);
+                }
+                messageDiv.textContent = welcomeText;
+            } else {
+                messageDiv.textContent = '你没有输入名字哦～';
+                alert('你没有输入名字哦～');
+            }
+        });
+    </script>
+</body>
+</html>

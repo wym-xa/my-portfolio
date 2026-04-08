@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>第七天 - 数组与循环</title>
+    <style>
+        body {
+            background: #f0f0f0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 400px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+            width: 100%;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: #f9f9f9;
+            margin: 8px 0;
+            padding: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>📝 cool girl每天只做六件事</h1>
+        <button id="showBtn">显示待办</button>
+        <ul id="todoList"></ul>
+    </div>
+
+    <script>
+        // 1. 创建一个数组，存放待办事项
+        let todos = ['减肥', '学习', '开心', '上班','睡觉'，'吃饭'];
+
+        // 2. 获取按钮和列表元素
+        const btn = document.getElementById('showBtn');
+        const list = document.getElementById('todoList');
+
+        // 3. 给按钮添加点击事件
+        btn.addEventListener('click', function() {
+            // 清空列表（避免重复点击时追加） 88
+            list.innerHTML = '';
+
+            // 4. 用循环遍历数组，为每个任务创建一个 <li> 元素
+            for (let i = 0; i < todos.length; i++) {
+                let task = todos[i];
+                let li = document.createElement('li');
+                li.textContent = (i+1)+'.'+task;
+                list.appendChild(li);
+            }
+        });
+    </script>
+</body>
+</html>
